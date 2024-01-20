@@ -1,0 +1,19 @@
+{
+  "name": "mongodp-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "veleswaran",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "mongodb": "^6.3.0",
+    "nodemon": "^3.0.3",
+    "querystring": "^0.2.1",
+    "url": "^0.11.3"
+  }
+}
