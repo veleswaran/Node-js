@@ -31,6 +31,7 @@
               <td><%= val.age %></td>
               <td><%= val.email %></td>
               <td><%= val.pswd %></td>
+              <td><img src="/images/<%= val.images %>" alt="<%= val.images %>" width="100%" height="100px"/></td>
               <td>
                 <button> <a href="/deleteuser/<%= val._id %>">delete</a></button>
                 <button> <a href="/update/<%= val._id %>">update</a></button>
@@ -39,6 +40,7 @@
          <% }); %>
     </tbody>
   </table>
+
 </div>
 
 </body>

@@ -1,48 +1,54 @@
 import ejs from 'ejs';
 import querystring from 'querystring';
 import { addUser, getUser, update, updateUser, deleteUser, addimage } from '../controller/UserController.mjs';
-import fs from 'fs';
+import fs from 'fs/promises';
 import url from 'url';
 import bcrypt from 'bcrypt';
 import formidable from 'formidable-serverless';
 import path from 'path';
 
 
-// route to show users 
 
-export async function handleshowUser(req,res){
-    try{
-        let users = await getUser(); 
+
+// route to show users 
+export async function handleshowUser(req, res) {
+    try {
+        const users = await getUser();
         console.log(users);
-        fs.readFile('./src/view/showuser.ejs', 'utf8', (err, template) => {
-            if (err) throw err;
-            else{
-                let renderedHtml = ejs.render(template, { users });
-                res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.write(renderedHtml);
-                res.end();
-                
-            }
-        });
-    }catch(err){
+        const currentModuleUrl = new URL(import.meta.url);
+        const moduleDir = path.dirname(currentModuleUrl.pathname);
+        const templatePath = path.join(moduleDir, '../view', 'showuser.ejs');
+        const template = await fs.readFile(templatePath, 'utf8');
+        const renderedHtml = ejs.render(template, { users });
+
+        // Send the rendered HTML as the response
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write(renderedHtml);
+        res.end();
+    } catch (err) {
         console.error('Error:', err);
+
+        // Handle errors appropriately
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Internal Server Error');
     }
-    
 }
 
 // route to add-userform
 
 export async function handleaddForm(req,res){
     try{
-        fs.readFile('./src/view/login.ejs', (err, data) => {
-            if (err) throw err;
-            else {
-                res.write(data);
-                res.end();
-            }
-        });
+        const currurl = new URL(import.meta.url);
+        const dir = path.dirname(currurl.pathname);
+        const templatePath = path.join(dir, '../view', 'login.ejs');
+        const template = await fs.readFile(templatePath, 'utf8');
+        const renderedHtml = ejs.render(template);
+
+        // Send the rendered HTML as the response
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write(renderedHtml);
+        res.end();
+        
     }catch(err){
         console.error('Error:', err);
         res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -98,13 +104,17 @@ export async function handleupdateForm(req,res){
         let id = parseurl.pathname.split('/').pop();
         let data = await update(id); 
         console.log(data);
-        fs.readFile('./src/view/updateform.ejs', 'utf8', (err, template) => {
-            if (err) throw err;
-            let renderedHtml = ejs.render(template, { data });
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.write(renderedHtml);
-            res.end();
-        });  
+        const currurl = new URL(import.meta.url);
+        const dir = path.dirname(currurl.pathname);
+        const templatePath = path.join(dir, '../view', 'login.ejs');
+        const template = await fs.readFile(templatePath, 'utf8');
+        const renderedHtml = ejs.render(template,{data});
+
+        // Send the rendered HTML as the response
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write(renderedHtml);
+        res.end();
+      
     }catch(err){
         console.error('Error:', err);
         res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -182,22 +192,41 @@ export function handleimage(req, res) {
     form.keepExtensions = true;
 
     form.parse(req, async (err, fields, files) => {
+        if (err) {
+            console.error('Error parsing form data:', err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+            return;
+        }
+
         const uploadedFile = files.image;
-        const user = querystring.parse(fields);
+
+        if (!uploadedFile) {
+            res.writeHead(400, { 'Content-Type': 'text/plain' });
+            res.end('No file uploaded');
+            return;
+        }
 
         // Generate a unique filename
         const uniqueFilename = Date.now() + '-' + Math.round(Math.random() * 10000);
         const fileExtension = path.extname(uploadedFile.name);
         const newFilename = uniqueFilename + fileExtension;
 
-        // Move the uploaded file to the uploads directory
-        fs.renameSync(uploadedFile.path, path.join(form.uploadDir, newFilename));
-        const hashpass = user.pswd ? await bcrypt.hash(user.pswd, 10) : null;
-        user.pswd = hashpass;
+        try {
+            // Move the uploaded file to the uploads directory
+            fs.renameSync(uploadedFile.path, path.join(form.uploadDir, newFilename));
 
-        await addUser(user);
+            const hashpass = fields.pswd ? await bcrypt.hash(fields.pswd, 10) : null;
+            fields.pswd = hashpass;
+            fields.images = newFilename;
+            await addUser(fields);
 
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Data added successfully');
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Data added successfully');
+        } catch (error) {
+            console.error('Error processing file:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+        }
     });
 }
