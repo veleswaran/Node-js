@@ -59,3 +59,13 @@ export async function deleteUser(id) {
         throw err;
     }
 }
+
+export async function addimage(data) {
+    try {
+        const collection = await UserModel();
+        await collection.insertOne(data);
+        console.log("Data added successfully");
+    } catch (err) {
+        throw err;
+    }
+}

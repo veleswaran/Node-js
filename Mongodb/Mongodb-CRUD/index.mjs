@@ -1,5 +1,5 @@
 import http from 'http';
-import { handleaddForm, handleadduser, handledeleteuser, handleshowUser, handleupdateForm, handleupdateUser } from './src/route/UserRoute.mjs';
+import { handleaddForm, handleadduser, handledeleteuser, handleimageForm, handleshowUser, handleupdateForm, handleupdateUser,handleimage } from './src/route/UserRoute.mjs';
 
 
 
@@ -34,6 +34,14 @@ let server = http.createServer(async (req, res) => {
     else if( req.url.startsWith('/updateuser/') && req.method==="POST"){
         await handleupdateUser(req,res);
             
+    }
+
+    else if(req.url==='/imageform' && req.method==='GET'){
+        await handleimageForm(req,res);
+    }
+    // image upload 
+    else if( req.url==='/image' && req.method==="POST"){
+        await handleimage(req,res);       
     }
 
     // if url is not match this is provide

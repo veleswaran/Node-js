@@ -10,9 +10,13 @@
   "author": "veleswaran",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "ejs": "^3.1.9",
+    "formidable": "^3.5.1",
+    "formidable-serverless": "^1.1.1",
     "mongodb": "^6.3.0",
     "nodemon": "^3.0.3",
+    "path": "^0.12.7",
     "querystring": "^0.2.1",
     "url": "^0.11.3"
   }
